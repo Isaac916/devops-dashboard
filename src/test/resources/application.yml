@@ -1,0 +1,11 @@
+jwt:
+  secret: dGhpcy1pcy1hLXZlcnktbG9uZy1zZWNyZXQta2V5LWZvci1kZXZvcHMtZGFzaGJvYXJkLXNwcmluZy1ib290LWFwcA==
+  expiration: 900000
+  refresh-expiration: 604800000
+
+spring:
+  mail:
+    host: localhost
+    port: 25
+    username: test
+    password: test
