@@ -8,9 +8,9 @@ spring:
     headers:
       xss-protection: false
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/devopsdashboard}
-    username: ${SPRING_DATASOURCE_USERNAME:admin}
-    password: ${SPRING_DATASOURCE_PASSWORD:secret}
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/devopsdashboard}
+    username: ${DATABASE_USERNAME:admin}
+    password: ${DATABASE_PASSWORD:secret}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
@@ -29,19 +29,19 @@ spring:
 
   data:
     redis:
-      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      host: ${REDIS_HOST:localhost}
       port: 6379
-      password: ${SPRING_DATA_REDIS_PASSWORD:redispass}
+      password: ${REDIS_PASSWORD:redispass}
 
   rabbitmq:
-    host: ${SPRING_RABBITMQ_HOST:localhost}
+    host: ${RABBITMQ_HOST:localhost}
     port: 5672
-    username: ${SPRING_RABBITMQ_USERNAME:user}
-    password: ${SPRING_RABBITMQ_PASSWORD:password}
+    username: ${RABBITMQ_USERNAME:user}
+    password: ${RABBITMQ_PASSWORD:password}
 
   mail:
-    host: ${SPRING_MAIL_HOST:sandbox.smtp.mailtrap.io}
-    port: ${SPRING_MAIL_PORT:2525}
+    host: ${MAIL_HOST:sandbox.smtp.mailtrap.io}
+    port: ${MAIL_PORT:2525}
     username: ${MAIL_USERNAME:}
     password: ${MAIL_PASSWORD:}
     properties:
