@@ -25,8 +25,19 @@ public class AiChatService {
             "https://api-inference.huggingface.co/models/google/flan-t5-small";
 
     public String chat(String message) {
+
         try {
-            // Escape básico de comillas
+            // 1. VALIDACIÓN OBLIGATORIA
+            if (message == null || message.isBlank()) {
+                return "Error: mensaje vacío";
+            }
+
+            if (apiKey == null || apiKey.isBlank()) {
+                log.error("HF API KEY NO CONFIGURADA");
+                return "Error: API key no configurada";
+            }
+
+            // 2. SANITIZAR INPUT
             String safeMessage = message.replace("\"", "\\\"");
 
             String jsonBody = "{\"inputs\": \"" + safeMessage + "\"}";
@@ -34,6 +45,7 @@ public class AiChatService {
             log.info("HF Request URL: {}", HF_URL);
             log.info("HF Request Body: {}", jsonBody);
 
+            // 3. REQUEST
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(HF_URL))
                     .header("Authorization", "Bearer " + apiKey)
@@ -49,36 +61,49 @@ public class AiChatService {
             log.info("HF Status Code: {}", response.statusCode());
             log.info("HF Response Body: {}", response.body());
 
-            // Modelo cargando
+            // 4. MANEJO DE ERRORES HF
             if (response.statusCode() == 503) {
                 return "El modelo está cargando en HuggingFace. Inténtalo en unos segundos.";
             }
 
-            // OK
-            if (response.statusCode() == 200) {
-
-                JsonNode root = objectMapper.readTree(response.body());
-
-                // HF devuelve ARRAY -> [{"generated_text": "..."}]
-                if (root.isArray() && root.size() > 0) {
-                    JsonNode first = root.get(0);
-
-                    if (first.has("generated_text")) {
-                        return first.get("generated_text").asText();
-                    }
-
-                    return first.toString();
-                }
-
-                return root.toString();
+            if (response.statusCode() == 401) {
+                return "Error HF: API key inválida o sin permisos.";
             }
 
-            // Error general
-            return "Error HF " + response.statusCode() + ": " + response.body();
+            if (response.statusCode() != 200) {
+                return "Error HF " + response.statusCode() + ": " + response.body();
+            }
+
+            // 5. PARSEO SEGURO
+            JsonNode root = objectMapper.readTree(response.body());
+
+            // Caso típico: ARRAY
+            if (root.isArray()) {
+
+                if (root.size() == 0) {
+                    return "Respuesta vacía del modelo.";
+                }
+
+                JsonNode first = root.get(0);
+
+                if (first.has("generated_text")) {
+                    return first.get("generated_text").asText();
+                }
+
+                return first.toString();
+            }
+
+            // Caso raro: objeto directo
+            if (root.has("generated_text")) {
+                return root.get("generated_text").asText();
+            }
+
+            return root.toString();
 
         } catch (Exception e) {
-            log.error("Error HF Chat: {}", e.getMessage(), e);
-            return "Error interno del chat: " + e.getMessage();
+            // 6. ERROR REAL (sin ocultar información)
+            log.error("ERROR COMPLETO HF CHAT", e);
+            return "Error interno del chat: " + e.toString();
         }
     }
 }
